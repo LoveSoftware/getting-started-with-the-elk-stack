@@ -24,6 +24,6 @@ Vagrant.configure("2") do |config|
 
     demo.hostsupdater.aliases = ["web.logstashdemo.com", "logs.logstashdemo.com", "elastic.logstashdemo.com"]
 
-    demo.vm.provision "shell", path: "build/bootstrap.sh"
+    #demo.vm.provision "shell", path: "build/bootstrap.sh"
   end
 end
