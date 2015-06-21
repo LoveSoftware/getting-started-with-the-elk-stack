@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
 
     # Increase memory available
     demo.vm.provider "virtualbox" do |v|
-      v.memory = 1024
+      v.memory = 2048
     end
 
     demo.vm.network "private_network", ip: "10.0.4.56"
@@ -22,7 +22,7 @@ Vagrant.configure("2") do |config|
 
     demo.ssh.forward_agent = true
 
-    demo.hostsupdater.aliases = ["web.logstashdemo.com", "logs.logstashdemo.com"]
+    demo.hostsupdater.aliases = ["web.logstashdemo.com", "logs.logstashdemo.com", "elastic.logstashdemo.com"]
 
     demo.vm.provision "shell", path: "build/bootstrap.sh"
   end

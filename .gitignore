@@ -1,3 +1,4 @@
 .vagrant
 vendor
 www
+build/packer/ubuntu-14.04/packer_cache
