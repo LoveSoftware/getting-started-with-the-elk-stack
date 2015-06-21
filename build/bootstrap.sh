@@ -5,7 +5,7 @@
 wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add -
 echo 'deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' | sudo tee /etc/apt/sources.list.d/elasticsearch.list
 echo 'deb http://packages.elasticsearch.org/logstash/1.5/debian stable main' | sudo tee /etc/apt/sources.list.d/logstash.list
-
+sudo apt-get install software-properties-common
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
 
@@ -13,7 +13,7 @@ sudo apt-get update
 sudo apt-get install -y zip
 cd
 wget https://github.com/LoveSoftware/getting-started-with-the-elk-stack/archive/01-tutorial.zip
-unzip 01-tutorial.zip
+unzip -q 01-tutorial.zip
 mv getting-started-with-the-elk-stack-01-tutorial code
 
 # Install Java
@@ -36,7 +36,7 @@ sudo mkdir -p /var/www/kibana3
 sudo cp -R ~/kibana-3.0.1/* /var/www/kibana3
 
 cd ~; wget https://download.elasticsearch.org/kibana/kibana/kibana-4.0.1-linux-x64.tar.gz
-tar xvf kibana-4.0.1-linux-x64.tar.gz
+tar xf kibana-4.0.1-linux-x64.tar.gz
 sudo mv kibana-4.0.1-linux-x64 /opt/kibana4.0.1
 
 # Install Nginx
