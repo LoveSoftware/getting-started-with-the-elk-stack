@@ -9,8 +9,8 @@ Vagrant.configure("2") do |config|
   config.vm.define "demo" do |demo|
 
     # Box template to use
-    demo.vm.box = "ubuntu/trusty64"
-
+    #demo.vm.box = "ubuntu/trusty64"
+    demo.vm.box = "build/packer/ubuntu-14.04/ubuntu-14-04-x64-virtualbox.box"
     # Increase memory available
     demo.vm.provider "virtualbox" do |v|
       v.memory = 2048

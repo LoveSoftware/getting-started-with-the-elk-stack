@@ -28,36 +28,29 @@ sudo cp ~/code/build/elasticsearch/elasticsearch.yml /etc/elasticsearch/elastics
 sudo service elasticsearch start
 sudo /usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ
 
-# Install Kibana
-cd ~; wget https://download.elasticsearch.org/kibana/kibana/kibana-3.0.1.tar.gz
-tar xf kibana-3.0.1.tar.gz
-cp ~/code/build/kibana/config.js ~/kibana-3.0.1/config.js
-sudo mkdir -p /var/www/kibana3
-sudo cp -R ~/kibana-3.0.1/* /var/www/kibana3
-
+#Install Kibana
 cd ~; wget https://download.elasticsearch.org/kibana/kibana/kibana-4.0.1-linux-x64.tar.gz
 tar xf kibana-4.0.1-linux-x64.tar.gz
 sudo mv kibana-4.0.1-linux-x64 /opt/kibana4.0.1
 
-# Install Nginx
-sudo apt-get install -y nginx
-sudo cp ~/code/build/nginx/kibanaelastic.conf /etc/nginx/sites-available/kibanaelastic.conf
-sudo cp /etc/nginx/sites-available/kibanaelastic.conf /etc/nginx/sites-enabled/kibanaelastic.conf
-sudo apt-get install -y apache2-utils
-echo "password" | sudo htpasswd -c -i /etc/nginx/conf.d/logs.logstashdemo.com.passwd kibana
-sudo service nginx restart
-
 # Hosts File
-echo '127.0.0.1 logs.logstashdemo.com' | sudo tee --append /etc/hosts
+echo '127.0.0.1 elastic.logstashdemo.com' | sudo tee --append /etc/hosts
+echo '127.0.0.1 kibana.logstashdemo.com' | sudo tee --append /etc/hosts
 echo '127.0.0.1 web.logstashdemo.com' | sudo tee --append /etc/hosts
 
 # Install logstash
 sudo apt-get install logstash
+sudo update-rc.d logstash defaults 95 10
+
+#Import geo database
+cd /etc/logstash
+sudo curl -O "http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz"
+sudo gunzip GeoLiteCity.dat.gz
+cd
 
 # Create SSL Certs
 sudo mkdir -p /etc/pki/tls/certs
 sudo mkdir /etc/pki/tls/private
-
 sudo cp ~/code/build/artifacts/logstash-forwarder.crt /etc/pki/tls/certs
 sudo cp ~/code/build/artifacts/logstash-forwarder.key /etc/pki/tls/private
 
@@ -65,17 +58,20 @@ sudo service logstash restart
 
 #### WEBAPP
 
+# NGINX
+sudo apt-get install -y nginx
+sudo apt-get install -y apache2-utils
+sudo rm /etc/nginx/sites-enabled/default
+sudo cp ~/code/build/nginx/logdemo.conf /etc/nginx/sites-available/logdemo.conf
+sudo ln -s /etc/nginx/sites-available/logdemo.conf /etc/nginx/sites-enabled/logdemo.conf
+sudo service nginx restart
+
 # Install Required packages
 sudo apt-get install -y git
 sudo apt-get install -y php5-fpm php5 php5-dev
 sudo apt-get install -y varnish
 
-
 # Configure Nginx
-sudo rm /etc/nginx/sites-enabled/default
-sudo cp ~/code/build/nginx/logdemo.conf /etc/nginx/sites-available/logdemo.conf
-sudo ln -s /etc/nginx/sites-available/logdemo.conf /etc/nginx/sites-enabled/logdemo.conf
-sudo service nginx restart
 
 # Configure Varnish
 sudo cp ~/code/build/varnish/varnish /etc/default/varnish
@@ -105,3 +101,6 @@ sudo cp ~/code/build/artifacts/logstash-forwarder.crt /etc/pki/tls/certs/
 sudo apt-get install -y supervisor
 sudo cp ~/code/build/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
 sudo service supervisor restart
+
+#Required for test script
+sudo apt-get install -y curl

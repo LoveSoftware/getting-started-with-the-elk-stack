@@ -5,8 +5,8 @@ backend web {
 }
 
 backend kibana {
-    .host = "logs.logstashdemo.com";
-    .port = "8081";
+    .host = "kibana.logstashdemo.com";
+    .port = "5601";
 }
 
 backend elastic {
@@ -18,7 +18,7 @@ backend elastic {
 sub vcl_recv {
     if (req.http.host ==  "web.logstashdemo.com") {
         set req.backend = web;
-    } elsif (req.http.host ==  "logs.logstashdemo.com") {
+    } elsif (req.http.host ==  "kibana.logstashdemo.com") {
         set req.backend = kibana;
     } elsif (req.http.host ==  "elastic.logstashdemo.com") {
         set req.backend = elastic;
