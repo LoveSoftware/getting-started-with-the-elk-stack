@@ -9,8 +9,10 @@ sudo apt-get install -y software-properties-common
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
 
+#Required for test script
+sudo apt-get install -y curl zip
+
 # Install codebase
-sudo apt-get install -y zip
 cd
 wget https://github.com/LoveSoftware/getting-started-with-the-elk-stack/archive/01-tutorial.zip
 unzip -q 01-tutorial.zip
@@ -36,6 +38,7 @@ sudo mv kibana-4.0.1-linux-x64 /opt/kibana4.0.1
 # Hosts File
 echo '127.0.0.1 elastic.logstashdemo.com' | sudo tee --append /etc/hosts
 echo '127.0.0.1 kibana.logstashdemo.com' | sudo tee --append /etc/hosts
+echo '127.0.0.1 logs.logstashdemo.com' | sudo tee --append /etc/hosts
 echo '127.0.0.1 web.logstashdemo.com' | sudo tee --append /etc/hosts
 
 # Install logstash
@@ -53,7 +56,6 @@ sudo mkdir -p /etc/pki/tls/certs
 sudo mkdir /etc/pki/tls/private
 sudo cp ~/code/build/artifacts/logstash-forwarder.crt /etc/pki/tls/certs
 sudo cp ~/code/build/artifacts/logstash-forwarder.key /etc/pki/tls/private
-
 sudo service logstash restart
 
 #### WEBAPP
@@ -71,8 +73,6 @@ sudo apt-get install -y git
 sudo apt-get install -y php5-fpm php5 php5-dev
 sudo apt-get install -y varnish
 
-# Configure Nginx
-
 # Configure Varnish
 sudo cp ~/code/build/varnish/varnish /etc/default/varnish
 sudo cp ~/code/build/varnish/default.vcl /etc/varnish/default.vcl
@@ -81,6 +81,9 @@ sudo service varnish restart
 # Configure Composer
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
+
+cd ~/code
+composer install
 
 # Add log files
 sudo touch /var/log/logstash-forwarder.log
@@ -101,6 +104,3 @@ sudo cp ~/code/build/artifacts/logstash-forwarder.crt /etc/pki/tls/certs/
 sudo apt-get install -y supervisor
 sudo cp ~/code/build/supervisord/supervisord.conf /etc/supervisor/supervisord.conf
 sudo service supervisor restart
-
-#Required for test script
-sudo apt-get install -y curl
