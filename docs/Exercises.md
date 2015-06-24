@@ -1,38 +1,63 @@
 #Exercises
 
-This document describes step by step how to complete each of the tutorial exercises.
+This document describes in detail the tutorial exercises.
+
+##Pre-Req's
+
+1) Copy the project directory from the supplied USB key
+
+2) If you haven't got vagrant installed, install it from the supplied binary in the project directory
 
 ##Setup
 
-1) Start the VM
+1) Go to the project directory and start the VM
 
-2) Open a web browser and check the demo app is working.
+```
+vagrant up
+```
+
+2) Add the following ip addresses to the /etc/hosts file of your host machine:
+
+```
+10.0.4.56  web.logstashdemo.com  
+10.0.4.56  kibana.logstashdemo.com
+10.0.4.56  elastic.logstashdemo.com
+```
+
+3) Open a web browser and check the demo app is working.
 
 ```
 web.Logstashdemo.com
 ```
 
-3) Open a new tab and check Kibana console is available
+4) Open a new tab and check Kibana console is available
 
 ```
-logs.Logstashdemo.com:5601
+kibana.Logstashdemo.com
 ```
 
-4) Open the supplied editor "Atom" and open:
+5) Open a new tab and check elastic HQ is available
 
 ```
-/home/Logstashdemo
+elastic.logstashdemo.com/_plugin/HQ
 ```
 
 ##Exercise One - Ingesting Nginx Access Logs
 
 The aim of this exercise is to get us up and running with the ELK stack.
 
+###Where is the demo app code
+
+```
+/vagrant/www/index.php
+```
+
 ###Where are the logs?
 
 Open an ssh terminal and tail the nginx access log of the demo app.
 
 ```
+vagrant ssh
 tail -f /var/log/nginx/helloapp.access.log
 ```
 
@@ -44,11 +69,17 @@ Use curl to make requests to the demo app.
 curl web.Logstashdemo.com
 ```
 
+There is a script which requests the demo app and generates logs.
+
+```
+/vagrant/bin/requester.sh
+```
+
 ### Getting these logs into the ELK stack
 
-In order to get this raw log data into we need to do two things:
+In order to get this raw log data into the ELK stack we need to do two things:
 
-1) Configure Logstash to accept log data, parse them and send them to elastic search.
+1) Configure Logstash to accept log data, parse it and send it to elastic search.
 
 2) Use the Logstash forwarder to tail the log file and send the logs to Logstash
 
@@ -58,7 +89,7 @@ Logstash config is divided into three sections. Input, Filter and Output.
 
 Lets create input and output config:
 
-* sudo nano /etc/logstash/conf.d/input.conf
+* sudo nano /etc/logstash/conf.d/logstash.conf
 
 ```
 input {
@@ -69,11 +100,7 @@ input {
     ssl_key => "/etc/pki/tls/private/logstash-forwarder.key"
   }
 }
-```
 
-* sudo nano /etc/logstash/conf.d/output.conf
-
-```
 output {
   elasticsearch { host => localhost }
 }
@@ -87,7 +114,7 @@ sudo service logstash restart
 
 ####The Logstash Forwarder
 
-1) Create a Logstash forwarder config file:
+1) Create a Logstash forwarder config file in your home directory:
 
 ```
 {
@@ -115,7 +142,7 @@ sudo logstash-forwarder --config /path/to/config
 
 1) Generate some log traffic.
 
-2) Check the Kibana logstash dashboard for log entries
+2) Check the Kibana 'discover' section for log entries
 
 ## Exercise Two: Parsing log data
 
@@ -127,9 +154,11 @@ Logstash can further parse incoming log entries before sending them to logstash 
 
 Create a filter config for logstash:
 
-* sudo nano /etc/logstash/conf.d/filter.conf
+* sudo nano /etc/logstash/conf.d/conf.conf
 
 ```
+... input config ...
+
 filter {
   if [type] == "nginx-access" {
     grok {
@@ -138,6 +167,8 @@ filter {
      add_field => [ "received_from", "%{host}" ]
     }
   }
+
+... output config ...
 }
 ```
 
@@ -151,20 +182,12 @@ sudo service logstash restart
 
 2) Generate some traffic
 
-3) Access the kibana logstash dashboard. Notice new log entries have top level fields.
+3) Access the kibana logstash dashboard. Notice new log entries have additional fields.
 
 ##Exercise Three: Searching log data in kibana
 
-After logs have been ingested via logstash into elasticsearch  they can be searched via
+After logs have been ingested via logstash into elasticsearch they can be searched via
 kibana.
-
-In order to demonstrate searching we need some more varied web log data.
-Generate some traffic to the /flappy end point which produces a wide range
-of http responses.
-
-```
-curl web.logstashdemo.com/flappy
-```
 
 ###Kibana dashboard - Basic Search
 
@@ -211,11 +234,11 @@ response: >=500
 
 You may want to ingest historical log data into elasticsearch for analysis.
 We can also use this as a demonstration of the important "date" parameter
-in the logstash "format" configuration.
+in the logstash "filter" configuration.
 
 ###Delete previous log data
 
-**If still running: stop the logstash forwarder used in the previous example**
+**If still running: stop the logstash forwarder and requester.sh used in the previous example**
 
 1) Go to:
 
@@ -233,41 +256,24 @@ http://elastic.logstashdemo.com/_plugin/HQ/
 
 6) Go to Kibana, note: there is no longer any log data
 
-###Update the logstash config to allow historical ingestion
+###Create a new logstash config to allow historical ingestion
 
-Add stdin as an input type.
+Use stdin as an input type.
 
-* sudo nano /etc/logstash/conf.d/input.conf
+* nano /home/vagrant/ingest.conf
 
-```
-input {
-  lumberjack {
-    port => 5000
-    type => "logs"
-    ssl_certificate => "/etc/pki/tls/certs/logstash-forwarder.crt"
-    ssl_key => "/etc/pki/tls/private/logstash-forwarder.key"
-  }
-  stdin { type => "nginx-access"  }
-}
-```
+1) Use the "stdin" input type
 
-Add stdout as an output type.
+2) Use the same filter section as in the previous example
 
-* sudo nano /etc/logstash/conf.d/output.conf
-
-```
-output {
-  elasticsearch { host => localhost }
-  stdout { codec => rubydebug }
-}
-```
+3) In addition to the elastic search output type, add stdout for debugging
 
 ###Ingest historical log data
 
 Cat the previously collected access logs into the logstash process
 
 ```
-sudo cat /var/log/nginx/helloapp.access.log | /opt/logstash/bin/logstash --config=/etc/logstash/conf.d
+sudo cat /var/log/nginx/helloapp.access.log | /opt/logstash/bin/logstash --config=/home/vagrant/ingest.conf
 ```
 
 Note: you can also use the "file" input type to achieve the same result
@@ -277,14 +283,16 @@ You should see the log data being ingested into elastic search
 Go to kibana and check the log data arrived.
 
 The log data is present however notice that the time the log data is reported to
-have occured is incorrect!
+have occurred is incorrect!
 
 ###Ingesting historical log data - with the correct date
 
 Logstash is able to use one of the groked fields as the timestamp used when searching
 and filtering data. To do this add a date filter to the filter config.
 
-* sudo nano /etc/logstash/conf.d/filter.conf
+1) Delete the previous imported data using elastic HQ
+
+* nano /home/vagrant/ingest.conf
 
 ```
 filter {
@@ -301,6 +309,10 @@ filter {
 }
 ```
 
+2) Reimport the log data. Note in Kibana, the logs have the correct date!
+
+3) Go and add the date filter to our primary logstash config.
+
 ##Exersise Five - Custom Groks
 
 "Groking" is one of the most important concepts when parsing unstructured data
@@ -314,7 +326,7 @@ can use to ingest the data into logstash.
 3) Parse the data into logstash using the command
 
 ```
-sudo cat /home/vagrant/misc/log.log | /opt/logstash/bin/logstash --config=/home/vagrant/newconfig.conf
+sudo cat /home/vagrant/misc/log.log | /opt/logstash/bin/logstash --config=/home/vagrant/ingest2.conf
 ```
 
 Hints:
@@ -325,15 +337,17 @@ Hints:
 * Use the two links below to help you construct the grok
 
 ```
-http://grokdebug.herokuapp.com/
+http://grokconstructor.appspot.com/do/match
 https://github.com/elasticsearch/logstash/blob/v1.4.2/patterns/grok-patterns
 ```
 
 ### Adding response time to Nginx Logs
 
+**Restart the logstash forwarder and requester.sh**
+
 It would be useful if we could add some information about response time into
-the nginx access logs. Using a custom grok We can later visualise this 'non standard' nginx access data in Kibana and use it
-to analyse site performance.
+the nginx access logs. Using a custom grok We can later visualize this
+'non standard' nginx access data in Kibana and use it to analyze site performance.
 
 1) Declare a new log format in the the nginx config file.
 
@@ -462,6 +476,14 @@ filter {
 
 Note the use of the JSON filter. Monolog serializes the log data to JSON.
 
+3) Restart logstash
+
+4) Add the path and type of the new 'hello-applog' to the logstash forwarder config.
+
+5) Restart the logstash forwarder
+
+6) Note the new php application logs arriving in kibana!
+
 ##Exercise Seven Visualisation / Dashboard Creation
 
 The aim of this exercise is to create a several visualisations of the data
@@ -474,3 +496,60 @@ we have gathered. These visualisations can then be grouped into dashboards.
 1) Create a visualisation for each of the blocks on the wireframe.
 
 2) Create a dashboard by using each of these visualisations.
+
+##Exercise Eight - Using the GeoIP Filter and Tile Map Visualization
+
+1) A sample of production nginx logs is in the misc folder
+
+* Use head to get a sample
+
+```
+head -n5 /vagrant/misc/reallogs.log
+```
+
+* There is a problem with these logs, they don't quite match the traditional
+%{COMBINEDAPACHELOG} grok format.
+
+* Grab one of the lines from the sample and debug the grok with the grokdebugger
+from the previous example.
+
+2) Create a new ingest filter config as in previous examples.
+
+* Example of the geo ip and mutate filters
+* Remember to use the date filter to ensure the correct date is used for these historical logs
+
+```
+... filter config ...
+geoip {
+  source => "clientip"
+  target => "geoip"
+  database => "/etc/logstash/GeoLiteCity.dat"
+  add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
+  add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}"  ]
+}
+mutate {
+  convert => [ "[geoip][coordinates]", "float"]
+}
+... more config ...
+```
+
+3) Start ingesting the log data using logstash
+
+4) In kibana use the discover tool to find when the logs occured
+
+5) Use the tile map visualization to create a map of where the http requests where
+made from.
+
+##Exercise Nine: Ingesting The Twitter Feed
+
+1) Sign Up for a Twitter developer account
+
+2) Create an ingest config for the twitter stream. Look for tweets about DPC.
+
+3) Use kibana to visualise how offten tweets occur. Tweet and test!
+
+##Exercise Ten: Ingesting YOUR DATA
+
+1) Grab a sample of your production data
+
+2) Use logstash and kibana to visualise whats happening on your production system

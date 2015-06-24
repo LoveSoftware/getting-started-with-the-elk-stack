@@ -22,10 +22,7 @@
       "type": "vagrant",
       "override": {
         "virtualbox": {
-          "output": "ubuntu-14-04-x64-virtualbox.box"
-        },
-        "vmware": {
-          "output": "ubuntu-14-04-x64-vmware.box"
+          "output": "ubuntu-14-04-x64-virtualbox-dpc15.box"
         }
       }
     }
