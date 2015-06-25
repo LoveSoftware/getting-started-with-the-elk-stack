@@ -67,7 +67,7 @@ $app->get(
     // Why not just hard code to Logger::Warning? Because we can use LOG_LEVEL to force debugging on a
     // host by host basis if we require.
     $appLog           = new Logger('AppLog');
-    $appStreamHandler = new StreamHandler('/var/log/app.log', Logger::DEBUG);
+    $appStreamHandler = new StreamHandler('/var/log/app.log', $debugLevel);
     $appStreamHandler->setFormatter(new LogstashFormatter("helloapp", "application"));
 
     // Use the Varnish ID

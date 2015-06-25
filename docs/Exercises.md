@@ -150,6 +150,10 @@ Currently the log data exists in a very raw form in Elasticsearch. This makes it
 
 Logstash can further parse incoming log entries before sending them to logstash to make it easier to search via Kibana.
 
+```
+https://github.com/elastic/logstash/blob/v1.4.2/patterns/grok-patterns
+```
+
 ###Adding A Grok Filter
 
 Create a filter config for logstash:
@@ -491,7 +495,7 @@ we have gathered. These visualisations can then be grouped into dashboards.
 
 ![Dashboard](https://www.evernote.com/shard/s558/sh/5abba168-7e8c-49a2-9fae-8436eb15a292/5a35e1eee6574746984a86c091f2069d/deep/0/Screen-Shot-2015-06-21-at-16.37.59.png)
 
-![Wireframe](https://www.evernote.com/shard/s558/sh/dd8a9e9b-cf34-424e-8f05-ddd146689b7b/d8d950740f08124e5cc5d49e411b2c33/deep/0/Blank-Flowchart---New-Page.png)
+![Wireframe](https://www.evernote.com/shard/s558/sh/8a22422f-3080-489b-a9a2-f3f94516117c/a12d4fe71c899fa9d79390a990e83464/deep/0/Blank-Flowchart--Lucidchart.png)
 
 1) Create a visualisation for each of the blocks on the wireframe.
 
@@ -520,16 +524,16 @@ from the previous example.
 
 ```
 ... filter config ...
-geoip {
-  source => "clientip"
-  target => "geoip"
-  database => "/etc/logstash/GeoLiteCity.dat"
-  add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
-  add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}"  ]
-}
-mutate {
-  convert => [ "[geoip][coordinates]", "float"]
-}
+    geoip {
+      source => "clientip"
+      target => "geoip"
+      database => "/etc/logstash/GeoLiteCity.dat"
+      add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
+      add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}"  ]
+    }
+    mutate {
+      convert => [ "[geoip][coordinates]", "float"]
+    }
 ... more config ...
 ```
 
