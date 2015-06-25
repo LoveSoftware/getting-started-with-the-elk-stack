@@ -4,3 +4,4 @@ build/packer/ubuntu-14.04/packer_cache
 build/packer/ubuntu-14.04/*.box
 software
 docs/answers.md
+misc/reallogs.log
