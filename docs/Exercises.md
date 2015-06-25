@@ -6,7 +6,8 @@ This document describes in detail the tutorial exercises.
 
 1) Copy the project directory from the supplied USB key
 
-2) If you haven't got vagrant installed, install it from the supplied binary in the project directory
+2) If you haven't got vagrant or virtualbox installed check the 'software'
+folder on the usb stick. 
 
 ##Setup
 
